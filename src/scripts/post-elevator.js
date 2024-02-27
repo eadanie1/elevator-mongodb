@@ -1,6 +1,8 @@
 
+import { Elevator } from "../../app.js";
 import axios from 'axios';
-import { elevators } from '../../app.js';
+import asyncLock from 'async-lock';
+const lock = new asyncLock();
 
 export let callsQueue = [];
 

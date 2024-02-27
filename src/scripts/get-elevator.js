@@ -1,29 +1,32 @@
 
-import { elevators } from "../../app.js";
-
+import { Elevator } from "../../app.js";
 
 export async function statusAllElevators(req, res) {
-  return elevators;
+  try {
+      const elevators = await Elevator
+        .find({id: {$gte: 1, $lte: 3}})
+        .select('id currentFloor status destinationFloor -_id')
+        .sort('id')
+      return elevators;
+  }
+  catch(error) {
+    console.error('Error retrieving collection', error)
+  }
 }
 
-export async function getElevatorStatus(elevators, req, res) {
-  const locationAndStatusAll = await elevators.map(elevator => ({
-    id: elevator.id,
-    currentFloor: elevator.currentFloor,
-    status: elevator.status
-  }));
-  res.json(locationAndStatusAll);    
+export async function isElevatorAvailable(id, req, res) {
+  try {
+      const elevator = await Elevator
+        .find({id: id})
+        .select('id currentFloor status -_id')
+      res.json(elevator);
+      elevator[0].status === 'idle' ? console.log(`Elevator ${id} is available for a new call`) : 
+        console.log(`Elevator ${id} is busy, please wait for the next idle elevator`);
+  }
+  catch(error) {
+    console.error('Error', error)
+  }
 }
-
-export async function isElevatorAvailable(elevators, req, res) {
-  const elevator = await elevators.find(e => e.id === parseInt(req.params.id));
-  if (elevator.status === 'idle') {
-        return res.json({message: `Elevator ${elevator.id} is idle and available for a new call`});
-    } else {
-          return res.json({message: `Elevator ${elevator.id} is busy and unavailable to take a new call`});
-    }
-}
-
 
 export const getRoutes = [
   {
@@ -34,21 +37,11 @@ export const getRoutes = [
     }
   },
   {
-    path: '/api/elevators/get-elevator-status',
+    path: '/api/elevators/get-status/:id',
     handler: async (req, res) => {
       try {
-        await getElevatorStatus(elevators, req, res);
-      }
-      catch(error) {
-        console.error('Error', error.message);
-      }
-    }
-  },
-  {
-    path: '/api/elevators/availability/:id',
-    handler: async (req, res) => {
-      try {
-        await isElevatorAvailable(elevators, req, res);
+        const id = parseInt(req.params.id);
+        await isElevatorAvailable(id, req, res);
       }
       catch(error) {
         console.error('Error', error.message);
@@ -56,6 +49,5 @@ export const getRoutes = [
     }
   }
 ];
-              
-              
-export default { statusAllElevators, getElevatorStatus, isElevatorAvailable, getRoutes };
+
+export default { statusAllElevators, isElevatorAvailable, getRoutes };
