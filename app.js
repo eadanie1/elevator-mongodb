@@ -43,6 +43,7 @@ putRoutes.forEach(route => {
 
 app.post('/api/elevators/call', callElevatorRouteHandler);
 // callElevatorAPI([10, 15, 20, 22, 23, 24]);
+callElevatorAPI([15, 25, 35]);
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
